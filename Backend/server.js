@@ -4,6 +4,7 @@ require("dotenv").config();
 
 const patientRoutes = require("./routes/patients");
 const messageRoutes = require("./routes/messages");
+const alertRoutes = require("./routes/alerts");
 
 const app = express();
 
@@ -16,6 +17,7 @@ app.get("/", (req, res) => {
 
 app.use("/patients", patientRoutes);
 app.use("/messages", messageRoutes);
+app.use("/alerts", alertRoutes);
 
 const PORT = process.env.PORT || 5000;
 

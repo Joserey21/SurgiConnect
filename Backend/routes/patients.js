@@ -9,7 +9,9 @@ let patients = [
     surgeryType: "Knee Surgery",
     surgeon: "Dr. Smith",
     status: "Pre-Op",
-    language: "Spanish"
+    language: "Spanish",
+    surgeryDate: "2026-03-30",
+    notes: ""
   },
   {
     id: 2,
@@ -17,7 +19,9 @@ let patients = [
     surgeryType: "Shoulder Repair",
     surgeon: "Dr. Brown",
     status: "Post-Op",
-    language: "English"
+    language: "English",
+    surgeryDate: "2026-03-25",
+    notes: ""
   },
   {
     id: 3,
@@ -25,7 +29,9 @@ let patients = [
     surgeryType: "ACL Reconstruction",
     surgeon: "Dr. Lee",
     status: "Recovered",
-    language: "Spanish"
+    language: "Spanish",
+    surgeryDate: "2026-03-20",
+    notes: ""
   }
 ];
 
@@ -46,6 +52,40 @@ router.get("/:id", (req, res) => {
   res.json(patient);
 });
 
+// POST create patient
+router.post("/", (req, res) => {
+  const {
+    name,
+    surgeryType,
+    surgeon,
+    status,
+    language,
+    surgeryDate,
+    notes
+  } = req.body;
+
+  if (!name || !surgeryType) {
+    return res.status(400).json({
+      message: "Name and surgery type are required"
+    });
+  }
+
+  const newPatient = {
+    id: patients.length + 1,
+    name,
+    surgeryType,
+    surgeon: surgeon || "Dr. Smith",
+    status: status || "Pre-Op",
+    language: language || "English",
+    surgeryDate: surgeryDate || "",
+    notes: notes || ""
+  };
+
+  patients.push(newPatient);
+
+  res.status(201).json(newPatient);
+});
+
 // PATCH update patient status
 router.patch("/:id/status", (req, res) => {
   const patientId = parseInt(req.params.id);
@@ -62,6 +102,21 @@ router.patch("/:id/status", (req, res) => {
   }
 
   patient.status = status;
+
+  const fetch = global.fetch;
+
+fetch("http://localhost:5000/alerts", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    type: "status",
+    text: `${patient.name} status changed to ${status}`,
+  }),
+}).catch((error) => {
+  console.error("Could not create status alert", error);
+});
 
   res.json({
     message: "Patient status updated successfully",
