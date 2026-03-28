@@ -1,241 +1,141 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 function Patients() {
-  const [patients, setPatients] = useState([
-    {
-      id: 1,
-      name: "Maria Lopez",
-      procedure: "Knee Arthroscopy",
-      language: "Spanish",
-      surgeryDate: "2026-03-28",
-      status: "Post-Op",
-      notes: "Patient uploaded recovery photo and asked about pain level.",
-    },
-    {
-      id: 2,
-      name: "John Smith",
-      procedure: "Shoulder Repair",
-      language: "English",
-      surgeryDate: "2026-03-30",
-      status: "Pre-Op",
-      notes: "Pre-op instructions sent. Waiting for confirmation.",
-    },
-    {
-      id: 3,
-      name: "Ana Garcia",
-      procedure: "ACL Reconstruction",
-      language: "Spanish",
-      surgeryDate: "2026-04-01",
-      status: "Recovered",
-      notes: "Patient completed follow-up and recovery looks good.",
-    },
-  ]);
+  const [patients, setPatients] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const [selectedPatient, setSelectedPatient] = useState(null);
+  const fetchPatients = () => {
+    fetch("http://localhost:5000/patients")
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to fetch patients");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        setPatients(data);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error fetching patients:", error);
+        setError("Could not load patients");
+        setLoading(false);
+      });
+  };
+
+  useEffect(() => {
+    fetchPatients();
+  }, []);
 
   const getStatusColor = (status) => {
     switch (status) {
       case "Pre-Op":
-        return "#f59e0b";
+        return "#f0ad4e";
       case "In Surgery":
-        return "#7c3aed";
+        return "#d9534f";
       case "Post-Op":
-        return "#0576D6";
+        return "#5bc0de";
       case "Recovered":
-        return "#10b981";
+        return "#5cb85c";
       default:
-        return "#9ca3af";
+        return "#999";
     }
   };
 
-  const handleStatusChange = (patientId, newStatus) => {
-    const updatedPatients = patients.map((patient) =>
-      patient.id === patientId ? { ...patient, status: newStatus } : patient
-    );
+  const handleStatusChange = async (patientId, newStatus) => {
+    try {
+      const response = await fetch(`http://localhost:5000/patients/${patientId}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
 
-    setPatients(updatedPatients);
+      if (!response.ok) {
+        throw new Error("Failed to update status");
+      }
 
-    const updatedSelectedPatient = updatedPatients.find(
-      (patient) => patient.id === patientId
-    );
-    setSelectedPatient(updatedSelectedPatient);
+      fetchPatients();
+    } catch (error) {
+      console.error("Error updating status:", error);
+      alert("Could not update patient status");
+    }
   };
 
+  if (loading) {
+    return <div>Loading patients...</div>;
+  }
+
+  if (error) {
+    return <div>{error}</div>;
+  }
+
   return (
-    <div style={{ backgroundColor: "#f4f8fc", minHeight: "100vh", padding: "20px" }}>
-      <h1
-        style={{
-          color: "#0576D6",
-          marginBottom: "20px",
-          textAlign: "center",
-          fontSize: "64px",
-        }}
-      >
-        Patients
-      </h1>
+    <div style={{ padding: "20px" }}>
+      <h1>Patients</h1>
 
-      <div style={{ textAlign: "center", marginBottom: "25px" }}>
-        <input
-          type="text"
-          placeholder="Search patients..."
-          style={{
-            width: "100%",
-            maxWidth: "500px",
-            padding: "12px",
-            border: "1px solid #ccc",
-            borderRadius: "8px",
-            fontSize: "16px",
-          }}
-        />
-      </div>
-
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: selectedPatient ? "2fr 1fr" : "1fr",
-          gap: "20px",
-          alignItems: "start",
-        }}
-      >
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-            gap: "20px",
-          }}
-        >
+      {patients.length === 0 ? (
+        <p>No patients found.</p>
+      ) : (
+        <div>
           {patients.map((patient) => (
-            <div
+            <Link
               key={patient.id}
-              style={{
-                backgroundColor: "#FFFFFF",
-                border: "2px solid #0576D6",
-                borderRadius: "12px",
-                padding: "20px",
-                boxShadow: "0 4px 10px rgba(0, 0, 0, 0.08)",
-              }}
+              to={`/patients/${patient.id}`}
+              style={{ textDecoration: "none", color: "inherit" }}
             >
-              <h2 style={{ color: "#0576D6", marginBottom: "10px", textAlign: "center" }}>
-                {patient.name}
-              </h2>
-
               <div
                 style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  gap: "8px",
-                  marginBottom: "12px",
+                  border: "1px solid #ccc",
+                  borderRadius: "10px",
+                  padding: "15px",
+                  marginBottom: "15px",
+                  backgroundColor: "#fff",
+                  cursor: "pointer"
                 }}
               >
-                <span
-                  style={{
-                    width: "12px",
-                    height: "12px",
-                    borderRadius: "50%",
-                    backgroundColor: getStatusColor(patient.status),
-                    display: "inline-block",
-                  }}
-                ></span>
-                <span style={{ fontWeight: "bold", color: "#555" }}>{patient.status}</span>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>
+                  <div
+                    style={{
+                      width: "12px",
+                      height: "12px",
+                      borderRadius: "50%",
+                      backgroundColor: getStatusColor(patient.status)
+                    }}
+                  ></div>
+                  <h3 style={{ margin: 0 }}>{patient.name}</h3>
+                </div>
+
+                <p><strong>Surgery:</strong> {patient.surgeryType}</p>
+                <p><strong>Surgeon:</strong> {patient.surgeon}</p>
+                <p><strong>Status:</strong> {patient.status}</p>
+                <p><strong>Language:</strong> {patient.language}</p>
+
+                <div style={{ marginTop: "10px" }}>
+                  <label><strong>Update Status: </strong></label>
+                  <select
+                    value={patient.status}
+                    onChange={(e) => {
+                      e.preventDefault();
+                      handleStatusChange(patient.id, e.target.value);
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                    style={{ padding: "6px", borderRadius: "6px", marginLeft: "8px" }}
+                  >
+                    <option value="Pre-Op">Pre-Op</option>
+                    <option value="In Surgery">In Surgery</option>
+                    <option value="Post-Op">Post-Op</option>
+                    <option value="Recovered">Recovered</option>
+                  </select>
+                </div>
               </div>
-
-              <p><strong>Procedure:</strong> {patient.procedure}</p>
-              <p><strong>Language:</strong> {patient.language}</p>
-              <p><strong>Surgery Date:</strong> {patient.surgeryDate}</p>
-
-              <button
-                onClick={() => setSelectedPatient(patient)}
-                style={{
-                  marginTop: "15px",
-                  backgroundColor: "#0576D6",
-                  color: "#FFFFFF",
-                  border: "none",
-                  padding: "10px 16px",
-                  borderRadius: "8px",
-                  cursor: "pointer",
-                  fontWeight: "bold",
-                  display: "block",
-                  marginLeft: "auto",
-                  marginRight: "auto",
-                }}
-              >
-                View Details
-              </button>
-            </div>
+            </Link>
           ))}
         </div>
-
-        {selectedPatient && (
-          <div
-            style={{
-              backgroundColor: "#FFFFFF",
-              border: "2px solid #0576D6",
-              borderRadius: "12px",
-              padding: "20px",
-              boxShadow: "0 4px 10px rgba(0, 0, 0, 0.08)",
-              position: "sticky",
-              top: "20px",
-            }}
-          >
-            <h2 style={{ color: "#0576D6", marginBottom: "15px" }}>
-              Patient Details
-            </h2>
-
-            <p><strong>Name:</strong> {selectedPatient.name}</p>
-            <p><strong>Procedure:</strong> {selectedPatient.procedure}</p>
-            <p><strong>Language:</strong> {selectedPatient.language}</p>
-            <p><strong>Surgery Date:</strong> {selectedPatient.surgeryDate}</p>
-
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                margin: "10px 0",
-              }}
-            >
-              <strong>Status:</strong>
-              <span
-                style={{
-                  width: "12px",
-                  height: "12px",
-                  borderRadius: "50%",
-                  backgroundColor: getStatusColor(selectedPatient.status),
-                  display: "inline-block",
-                }}
-              ></span>
-              <span>{selectedPatient.status}</span>
-            </div>
-
-            <p><strong>Notes:</strong> {selectedPatient.notes}</p>
-
-            <div style={{ marginTop: "20px" }}>
-              <label style={{ fontWeight: "bold", display: "block", marginBottom: "8px" }}>
-                Update Status
-              </label>
-
-              <select
-                value={selectedPatient.status}
-                onChange={(e) =>
-                  handleStatusChange(selectedPatient.id, e.target.value)
-                }
-                style={{
-                  width: "100%",
-                  padding: "10px",
-                  borderRadius: "8px",
-                  border: "1px solid #ccc",
-                }}
-              >
-                <option value="Pre-Op">Pre-Op</option>
-                <option value="In Surgery">In Surgery</option>
-                <option value="Post-Op">Post-Op</option>
-                <option value="Recovered">Recovered</option>
-              </select>
-            </div>
-          </div>
-        )}
-      </div>
+      )}
     </div>
   );
 }
