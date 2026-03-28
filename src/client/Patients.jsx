@@ -1,72 +1,64 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
-function Patients() {
-  const [patients, setPatients] = useState([
-    {
-      id: 1,
-      name: "Maria Lopez",
-      procedure: "Knee Arthroscopy",
-      language: "Spanish",
-      surgeryDate: "2026-03-28",
-      status: "Post-Op",
-      notes: "Patient uploaded recovery photo and asked about pain level.",
-    },
-    {
-      id: 2,
-      name: "John Smith",
-      procedure: "Shoulder Repair",
-      language: "English",
-      surgeryDate: "2026-03-30",
-      status: "Pre-Op",
-      notes: "Pre-op instructions sent. Waiting for confirmation.",
-    },
-    {
-      id: 3,
-      name: "Ana Garcia",
-      procedure: "ACL Reconstruction",
-      language: "Spanish",
-      surgeryDate: "2026-04-01",
-      status: "Recovered",
-      notes: "Patient completed follow-up and recovery looks good.",
-    },
-  ]);
-
-  const [selectedPatient, setSelectedPatient] = useState(null);
+function Patients({ patients, handleStatusChange, handleSurgeryDateChange }) {
+  const [selectedPatientId, setSelectedPatientId] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedProcedure, setSelectedProcedure] = useState("All Procedures");
 
   const getStatusColor = (status) => {
     switch (status) {
-      case "Pre-Op":
-        return "#f59e0b";
-      case "In Surgery":
-        return "#7c3aed";
-      case "Post-Op":
-        return "#0576D6";
-      case "Recovered":
+      case "Stable":
         return "#10b981";
+      case "Critical":
+        return "#ef4444";
+      case "Recovering":
+        return "#f59e0b";
+      case "Discharged":
+        return "#6366f1";
+      case "Monitoring":
+        return "#8b5cf6";
       default:
         return "#9ca3af";
     }
   };
 
-  const handleStatusChange = (patientId, newStatus) => {
-    const updatedPatients = patients.map((patient) =>
-      patient.id === patientId ? { ...patient, status: newStatus } : patient
-    );
+  const procedureOptions = useMemo(() => {
+    const uniqueProcedures = [...new Set(patients.map((patient) => patient.procedure))];
+    return ["All Procedures", ...uniqueProcedures];
+  }, [patients]);
 
-    setPatients(updatedPatients);
+  // Filter patients based on search term and procedure
+  const filteredPatients = useMemo(() => {
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    return patients.filter((patient) => {
+      const matchesSearch =
+        !searchTerm.trim() ||
+        patient.name.toLowerCase().includes(lowerSearchTerm) ||
+        patient.procedure.toLowerCase().includes(lowerSearchTerm) ||
+        patient.language.toLowerCase().includes(lowerSearchTerm) ||
+        patient.status.toLowerCase().includes(lowerSearchTerm);
 
-    const updatedSelectedPatient = updatedPatients.find(
-      (patient) => patient.id === patientId
-    );
-    setSelectedPatient(updatedSelectedPatient);
-  };
+      const matchesProcedure =
+        selectedProcedure === "All Procedures" || patient.procedure === selectedProcedure;
+
+      return matchesSearch && matchesProcedure;
+    });
+  }, [patients, searchTerm, selectedProcedure]);
+
+  // Get updated selected patient data
+  const updatedSelectedPatient = useMemo(() => {
+    if (selectedPatientId) {
+      return patients.find((patient) => patient.id === selectedPatientId);
+    }
+    return null;
+  }, [patients, selectedPatientId]);
 
   return (
-    <div style={{ backgroundColor: "#f4f8fc", minHeight: "100vh", padding: "20px" }}>
+    <div style={{ backgroundColor: "#1a1a1a", minHeight: "100vh", padding: "20px" }}>
       <h1
         style={{
           color: "#0576D6",
-          marginBottom: "20px",
+          marginBottom: "40px",
           textAlign: "center",
           fontSize: "64px",
         }}
@@ -74,80 +66,138 @@ function Patients() {
         Patients
       </h1>
 
-      <div style={{ textAlign: "center", marginBottom: "25px" }}>
+      <div
+        style={{
+          display: "flex",
+          gap: "16px",
+          justifyContent: "center",
+          alignItems: "center",
+          flexWrap: "wrap",
+          marginBottom: "25px",
+        }}
+      >
         <input
           type="text"
           placeholder="Search patients..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
           style={{
             width: "100%",
             maxWidth: "500px",
             padding: "12px",
-            border: "1px solid #ccc",
+            border: "1px solid #0576D6",
             borderRadius: "8px",
             fontSize: "16px",
+            backgroundColor: "#FFFFFF",
+            color: "#000000",
           }}
         />
-      </div>
-
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: selectedPatient ? "2fr 1fr" : "1fr",
-          gap: "20px",
-          alignItems: "start",
-        }}
-      >
-        <div
+        <select
+          value={selectedProcedure}
+          onChange={(e) => setSelectedProcedure(e.target.value)}
           style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-            gap: "20px",
+            width: "100%",
+            maxWidth: "240px",
+            padding: "12px",
+            border: "1px solid #0576D6",
+            borderRadius: "8px",
+            fontSize: "16px",
+            backgroundColor: "#FFFFFF",
+            color: "#000000",
           }}
         >
-          {patients.map((patient) => (
+          {procedureOptions.map((procedure) => (
+            <option key={procedure} value={procedure}>
+              {procedure}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {(searchTerm || selectedProcedure !== "All Procedures") && filteredPatients.length === 0 && (
+        <p style={{ textAlign: "center", color: "#000000", marginBottom: "20px" }}>
+          No patients found for the selected filters
+        </p>
+      )}
+
+      <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+        {filteredPatients.map((patient) => (
+          <div key={patient.id}>
+            {/* Patient Card - Rectangular spanning full width */}
             <div
-              key={patient.id}
               style={{
                 backgroundColor: "#FFFFFF",
                 border: "2px solid #0576D6",
                 borderRadius: "12px",
                 padding: "20px",
                 boxShadow: "0 4px 10px rgba(0, 0, 0, 0.08)",
+                display: "grid",
+                gridTemplateColumns: "100px 1fr 1fr 1fr 1fr 150px",
+                gap: "4px",
+                columnGap: "20px",
+                alignItems: "center",
               }}
             >
-              <h2 style={{ color: "#0576D6", marginBottom: "10px", textAlign: "center" }}>
-                {patient.name}
-              </h2>
-
+              {/* Image Box */}
               <div
                 style={{
+                  width: "80px",
+                  height: "80px",
+                  backgroundColor: "#e5e7eb",
+                  borderRadius: "8px",
                   display: "flex",
-                  justifyContent: "center",
                   alignItems: "center",
-                  gap: "8px",
-                  marginBottom: "12px",
+                  justifyContent: "center",
+                  border: "2px solid #d1d5db",
+                  fontSize: "32px",
+                  color: "#9ca3af",
                 }}
               >
-                <span
-                  style={{
-                    width: "12px",
-                    height: "12px",
-                    borderRadius: "50%",
-                    backgroundColor: getStatusColor(patient.status),
-                    display: "inline-block",
-                  }}
-                ></span>
-                <span style={{ fontWeight: "bold", color: "#555" }}>{patient.status}</span>
+                👤
               </div>
 
-              <p><strong>Procedure:</strong> {patient.procedure}</p>
-              <p><strong>Language:</strong> {patient.language}</p>
-              <p><strong>Surgery Date:</strong> {patient.surgeryDate}</p>
+              <div style={{ marginLeft: "-15px" }}>
+                <h2 style={{ color: "#0576D6", margin: "0 0 10px 0" }}>
+                  {patient.name}
+                </h2>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
+                >
+                  <span
+                    style={{
+                      width: "12px",
+                      height: "12px",
+                      borderRadius: "50%",
+                      backgroundColor: getStatusColor(patient.status),
+                      display: "inline-block",
+                    }}
+                  ></span>
+                  <span style={{ fontWeight: "bold", color: "#000000" }}>{patient.status}</span>
+                </div>
+              </div>
+
+              <div>
+                <p style={{ margin: 0 }}><strong>Procedure:</strong></p>
+                <p style={{ margin: "4px 0 0 0", color: "#000000" }}>{patient.procedure}</p>
+              </div>
+
+              <div>
+                <p style={{ margin: 0 }}><strong>Language:</strong></p>
+                <p style={{ margin: "4px 0 0 0", color: "#000000" }}>{patient.language}</p>
+              </div>
+
+              <div>
+                <p style={{ margin: 0 }}><strong>Surgery Date:</strong></p>
+                <p style={{ margin: "4px 0 0 0", color: "#000000" }}>{patient.surgeryDate}</p>
+              </div>
 
               <button
-                onClick={() => setSelectedPatient(patient)}
+                onClick={() => setSelectedPatientId(selectedPatientId === patient.id ? null : patient.id)}
                 style={{
-                  marginTop: "15px",
                   backgroundColor: "#0576D6",
                   color: "#FFFFFF",
                   border: "none",
@@ -155,86 +205,96 @@ function Patients() {
                   borderRadius: "8px",
                   cursor: "pointer",
                   fontWeight: "bold",
-                  display: "block",
-                  marginLeft: "auto",
-                  marginRight: "auto",
+                  height: "fit-content",
                 }}
               >
-                View Details
+                {selectedPatientId === patient.id ? "Hide" : "View"} Details
               </button>
             </div>
-          ))}
-        </div>
 
-        {selectedPatient && (
-          <div
-            style={{
-              backgroundColor: "#FFFFFF",
-              border: "2px solid #0576D6",
-              borderRadius: "12px",
-              padding: "20px",
-              boxShadow: "0 4px 10px rgba(0, 0, 0, 0.08)",
-              position: "sticky",
-              top: "20px",
-            }}
-          >
-            <h2 style={{ color: "#0576D6", marginBottom: "15px" }}>
-              Patient Details
-            </h2>
-
-            <p><strong>Name:</strong> {selectedPatient.name}</p>
-            <p><strong>Procedure:</strong> {selectedPatient.procedure}</p>
-            <p><strong>Language:</strong> {selectedPatient.language}</p>
-            <p><strong>Surgery Date:</strong> {selectedPatient.surgeryDate}</p>
-
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                margin: "10px 0",
-              }}
-            >
-              <strong>Status:</strong>
-              <span
+            {/* Patient Details - Shows below when selected */}
+            {selectedPatientId === patient.id && updatedSelectedPatient && (
+              <div
                 style={{
-                  width: "12px",
-                  height: "12px",
-                  borderRadius: "50%",
-                  backgroundColor: getStatusColor(selectedPatient.status),
-                  display: "inline-block",
-                }}
-              ></span>
-              <span>{selectedPatient.status}</span>
-            </div>
-
-            <p><strong>Notes:</strong> {selectedPatient.notes}</p>
-
-            <div style={{ marginTop: "20px" }}>
-              <label style={{ fontWeight: "bold", display: "block", marginBottom: "8px" }}>
-                Update Status
-              </label>
-
-              <select
-                value={selectedPatient.status}
-                onChange={(e) =>
-                  handleStatusChange(selectedPatient.id, e.target.value)
-                }
-                style={{
-                  width: "100%",
-                  padding: "10px",
-                  borderRadius: "8px",
-                  border: "1px solid #ccc",
+                  backgroundColor: "#FFFFFF",
+                  border: "2px solid #0576D6",
+                  borderTop: "none",
+                  borderRadius: "0 0 12px 12px",
+                  padding: "20px",
+                  boxShadow: "0 4px 10px rgba(0, 0, 0, 0.08)",
                 }}
               >
-                <option value="Pre-Op">Pre-Op</option>
-                <option value="In Surgery">In Surgery</option>
-                <option value="Post-Op">Post-Op</option>
-                <option value="Recovered">Recovered</option>
-              </select>
-            </div>
+                <h2 style={{ color: "#0576D6", marginBottom: "15px", marginTop: 0 }}>
+                  Patient Details
+                </h2>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: "30px" }}>
+                  <div>
+                    <p style={{ margin: "12px 0" }}><strong>Name:</strong> {updatedSelectedPatient.name}</p>
+                    <p style={{ margin: "12px 0" }}><strong>Procedure:</strong> {updatedSelectedPatient.procedure}</p>
+                    <p style={{ margin: "12px 0" }}><strong>Language:</strong> {updatedSelectedPatient.language}</p>
+                    <p style={{ margin: "12px 0" }}><strong>Notes:</strong> {updatedSelectedPatient.notes}</p>
+                  </div>
+
+                  <div>
+                    <div style={{ marginBottom: "20px" }}>
+                      <label style={{ fontWeight: "bold", display: "block", marginBottom: "4px", color: "#000000", fontSize: "13px" }}>
+                        Status
+                      </label>
+                      <select
+                        value={updatedSelectedPatient.status}
+                        onChange={(e) =>
+                          handleStatusChange(updatedSelectedPatient.id, e.target.value)
+                        }
+                        style={{
+                          width: "100%",
+                          padding: "6px 8px",
+                          borderRadius: "6px",
+                          border: "2px solid #0576D6",
+                          fontSize: "12px",
+                          fontWeight: "bold",
+                          color: getStatusColor(updatedSelectedPatient.status),
+                          backgroundColor: "#f9fafb",
+                          boxSizing: "border-box",
+                        }}
+                      >
+                        <option value="Discharged" style={{ color: "#6366f1" }}>Discharged</option>
+                        <option value="Stable" style={{ color: "#10b981" }}>Stable</option>
+                        <option value="Recovering" style={{ color: "#f59e0b" }}>Recovering</option>
+                        <option value="Monitoring" style={{ color: "#8b5cf6" }}>Monitoring</option>
+                        <option value="Critical" style={{ color: "#ef4444" }}>Critical</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label style={{ fontWeight: "bold", display: "block", marginBottom: "4px", color: "#000000", fontSize: "13px" }}>
+                        Surgery Date
+                      </label>
+                      <input
+                        type="date"
+                        value={updatedSelectedPatient.surgeryDate}
+                        onChange={(e) =>
+                          handleSurgeryDateChange(updatedSelectedPatient.id, e.target.value)
+                        }
+                        style={{
+                          width: "100%",
+                          padding: "6px 8px",
+                          borderRadius: "6px",
+                          border: "2px solid #0576D6",
+                          fontSize: "12px",
+                          backgroundColor: "#FFFFFF",
+                          color: "#000000",
+                          boxSizing: "border-box",
+                          colorScheme: "light",
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
-        )}
+        ))}
       </div>
     </div>
   );
