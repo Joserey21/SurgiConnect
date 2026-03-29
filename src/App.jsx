@@ -1,14 +1,13 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { useState } from "react";
 
+import Dashboard from "./client/Dashboard";
 import Patients from "./client/Patients";
-import PatientDetails from "./client/PatientDetails";
 import PatientView from "./client/PatientView";
 import Sidebar from "./client/Sidebar";
 import Status from "./client/Status";
 import Messages from "./client/Messages";
 import Uploads from "./client/Uploads";
-import Dashboard from "./client/Dashboard";
 
 function App() {
   const [mode, setMode] = useState("surgeon");
@@ -28,35 +27,45 @@ function App() {
       <div style={{ display: "flex" }}>
         {mode === "surgeon" && <Sidebar />}
 
-        <div style={{ flex: 1, padding: "20px" }}>
-          <div style={{ marginBottom: "20px" }}>
+        <div
+          style={{
+            marginLeft: mode === "surgeon" ? "250px" : "0",
+            width: "100%",
+            minHeight: "100vh",
+            backgroundColor: "#0d0f1a",
+            padding: "20px",
+            boxSizing: "border-box"
+          }}
+        >
+          <div style={{ marginBottom: "20px", textAlign: "center" }}>
             <button
               onClick={toggleMode}
               style={{
-                padding: "10px 15px",
-                borderRadius: "8px",
+                padding: "12px 20px",
+                borderRadius: "10px",
                 border: "none",
                 backgroundColor: "#0576D6",
                 color: "white",
                 cursor: "pointer",
+                fontWeight: "bold"
               }}
             >
               Switch to {mode === "surgeon" ? "Patient View" : "Surgeon View"}
             </button>
           </div>
 
-          <h2>{mode === "surgeon" ? "Surgeon Dashboard" : "Patient View"}</h2>
+          <h2 style={{ textAlign: "center", color: "white", marginBottom: "25px" }}>
+            {mode === "surgeon" ? "Surgeon Dashboard" : "Patient View"}
+          </h2>
 
           <Routes>
             {mode === "surgeon" && (
               <>
                 <Route path="/" element={<Dashboard />} />
-                <Route path="/" element={<Patients />} />
                 <Route path="/patients" element={<Patients />} />
-                <Route path="/patients/:id" element={<PatientDetails />} />
-                <Route path="/status" element={<Status />} />
                 <Route path="/messages" element={<Messages />} />
                 <Route path="/uploads" element={<Uploads addPatient={addPatient} />} />
+                <Route path="/status" element={<Status />} />
               </>
             )}
 

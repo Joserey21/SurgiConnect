@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 
 function Patients() {
   const [patients, setPatients] = useState([]);
@@ -75,64 +74,54 @@ function Patients() {
 
   return (
     <div style={{ padding: "20px" }}>
-      <h1>Patients</h1>
+      <h1 style={{ color: "#0576D6" }}>Patients</h1>
 
       {patients.length === 0 ? (
         <p>No patients found.</p>
       ) : (
         <div>
           {patients.map((patient) => (
-            <Link
+            <div
               key={patient.id}
-              to={`/patients/${patient.id}`}
-              style={{ textDecoration: "none", color: "inherit" }}
+              style={{
+                border: "1px solid #ccc",
+                borderRadius: "10px",
+                padding: "15px",
+                marginBottom: "15px",
+                backgroundColor: "#fff"
+              }}
             >
-              <div
-                style={{
-                  border: "1px solid #ccc",
-                  borderRadius: "10px",
-                  padding: "15px",
-                  marginBottom: "15px",
-                  backgroundColor: "#fff",
-                  cursor: "pointer"
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>
-                  <div
-                    style={{
-                      width: "12px",
-                      height: "12px",
-                      borderRadius: "50%",
-                      backgroundColor: getStatusColor(patient.status)
-                    }}
-                  ></div>
-                  <h3 style={{ margin: 0 }}>{patient.name}</h3>
-                </div>
-
-                <p><strong>Surgery:</strong> {patient.surgeryType}</p>
-                <p><strong>Surgeon:</strong> {patient.surgeon}</p>
-                <p><strong>Status:</strong> {patient.status}</p>
-                <p><strong>Language:</strong> {patient.language}</p>
-
-                <div style={{ marginTop: "10px" }}>
-                  <label><strong>Update Status: </strong></label>
-                  <select
-                    value={patient.status}
-                    onChange={(e) => {
-                      e.preventDefault();
-                      handleStatusChange(patient.id, e.target.value);
-                    }}
-                    onClick={(e) => e.stopPropagation()}
-                    style={{ padding: "6px", borderRadius: "6px", marginLeft: "8px" }}
-                  >
-                    <option value="Pre-Op">Pre-Op</option>
-                    <option value="In Surgery">In Surgery</option>
-                    <option value="Post-Op">Post-Op</option>
-                    <option value="Recovered">Recovered</option>
-                  </select>
-                </div>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>
+                <div
+                  style={{
+                    width: "12px",
+                    height: "12px",
+                    borderRadius: "50%",
+                    backgroundColor: getStatusColor(patient.status)
+                  }}
+                ></div>
+                <h3 style={{ margin: 0 }}>{patient.name}</h3>
               </div>
-            </Link>
+
+              <p><strong>Surgery:</strong> {patient.surgeryType}</p>
+              <p><strong>Surgeon:</strong> {patient.surgeon}</p>
+              <p><strong>Status:</strong> {patient.status}</p>
+              <p><strong>Language:</strong> {patient.language}</p>
+
+              <div style={{ marginTop: "10px" }}>
+                <label><strong>Update Status: </strong></label>
+                <select
+                  value={patient.status}
+                  onChange={(e) => handleStatusChange(patient.id, e.target.value)}
+                  style={{ padding: "6px", borderRadius: "6px", marginLeft: "8px" }}
+                >
+                  <option value="Pre-Op">Pre-Op</option>
+                  <option value="In Surgery">In Surgery</option>
+                  <option value="Post-Op">Post-Op</option>
+                  <option value="Recovered">Recovered</option>
+                </select>
+              </div>
+            </div>
           ))}
         </div>
       )}

@@ -201,7 +201,7 @@ function Uploads({ addPatient = () => {} }) {
               marginBottom: "20px",
             }}
           >
-            <p style={{ margin: "0 0 15px 0", fontSize: "24px" }}>📁</p>
+            <p style={{ margin: "0 0 15px 0", fontSize: "24px" }}>UPLOAD</p>
             <input
               type="file"
               multiple

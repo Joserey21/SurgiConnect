@@ -1,65 +1,78 @@
-import { Link } from "react-router-dom";
-import doctorImage from "../assets/hero.png";
+import { NavLink } from "react-router-dom";
 
 function Sidebar() {
+  const linkStyle = ({ isActive }) => ({
+    display: "block",
+    padding: "12px 16px",
+    color: "white",
+    textDecoration: "none",
+    borderRadius: "10px",
+    backgroundColor: isActive ? "#035fa3" : "transparent",
+    fontSize: "18px",
+    fontWeight: isActive ? "bold" : "normal",
+    textAlign: "center",
+    marginBottom: "10px",
+    transition: "0.2s"
+  });
+
   return (
     <div
       style={{
-        width: "220px",
-        height: "100vh",
-        background: "#1e1e2f",
+        width: "250px",
+        backgroundColor: "#0576D6",
         color: "white",
+        height: "100vh",
+        position: "fixed",
+        top: 0,
+        left: 0,
+        display: "flex",
+        flexDirection: "column",
         padding: "20px",
+        boxSizing: "border-box"
       }}
     >
-      <Link
-        to="/"
-        style={{
-          color: "white",
-          textDecoration: "none",
-          display: "inline-block",
-        }}
-      >
-        <h2 style={{ margin: 0 }}>MedApp</h2>
-      </Link>
+      <h1 style={{ textAlign: "center", marginBottom: "30px", fontSize: "30px" }}>SurgiConnect</h1>
 
       <div
         style={{
-          marginTop: "24px",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          padding: "14px 10px",
-          borderRadius: "12px",
-          backgroundColor: "#2a2a40",
-          border: "1px solid #3a3a57",
+          backgroundColor: "#2b2b52",
+          borderRadius: "16px",
+          padding: "20px",
+          textAlign: "center",
+          marginBottom: "30px"
         }}
       >
         <img
-          src={doctorImage}
-          alt="Doctor profile"
+          src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
+          alt="Profile"
           style={{
-            width: "72px",
-            height: "72px",
+            width: "90px",
+            height: "90px",
             borderRadius: "50%",
-            objectFit: "cover",
-            border: "2px solid #0576D6",
+            border: "2px solid white",
+            marginBottom: "15px"
           }}
         />
-        <p style={{ margin: "10px 0 2px 0", fontWeight: "bold", fontSize: "14px" }}>
-          Dr. Sarah Kim
-        </p>
-        <p style={{ margin: 0, color: "#b7bdd6", fontSize: "12px" }}>
-          Orthopedic Surgeon
-        </p>
+        <h3 style={{ margin: "0 0 10px 0" }}>Dr. Sarah Kim</h3>
+        <p style={{ margin: 0, opacity: 0.9 }}>Orthopedic Surgeon</p>
       </div>
 
-      <nav style={{ display: "flex", flexDirection: "column", gap: "15px", marginTop: "30px" }}>
-        <Link to="/" style={{ color: "white", textDecoration: "none" }}>Dashboard</Link>
-        <Link to="/patients" style={{ color: "white", textDecoration: "none" }}>Patients</Link>
-        <Link to="/messages" style={{ color: "white", textDecoration: "none" }}>Messages</Link>
-        <Link to="/uploads" style={{ color: "white", textDecoration: "none" }}>Uploads</Link>
-        <Link to="/status" style={{ color: "white", textDecoration: "none" }}>Status</Link>
+      <nav style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+        <NavLink to="/" style={linkStyle}>
+          Dashboard
+        </NavLink>
+        <NavLink to="/patients" style={linkStyle}>
+          Patients
+        </NavLink>
+        <NavLink to="/messages" style={linkStyle}>
+          Messages
+        </NavLink>
+        <NavLink to="/uploads" style={linkStyle}>
+          Uploads
+        </NavLink>
+        <NavLink to="/status" style={linkStyle}>
+          Status
+        </NavLink>
       </nav>
     </div>
   );
