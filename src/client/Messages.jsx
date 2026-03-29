@@ -98,9 +98,10 @@ function Messages() {
       }
 
       setLocalMessages((prevMessages) =>
-        prevMessages.map((msg) =>
-          msg.status === "Unread" ? { ...msg, status: "Read" } : msg
-        )
+        prevMessages.map((msg) => ({
+          ...msg,
+          status: "Read",
+        }))
       );
     } catch (error) {
       console.error("Unable to mark all messages as read", error);
@@ -156,15 +157,26 @@ function Messages() {
         uploadedImageUrl = `${API_BASE_URL}/uploads/${uploadResult.file}`;
       }
 
+      const selectedPatient = patients.find(
+        (patient) => String(patient.id) === composer.patientId
+      );
+
       const payload = {
         patientId: Number(composer.patientId),
         patientName: composer.patientName.trim() || "Unknown Patient",
+        patientLanguage:
+          selectedPatient?.language === "Spanish"
+            ? "es"
+            : selectedPatient?.language === "English"
+            ? "en"
+            : "en",
         sender: "surgeon",
         from: "Surgeon",
         to: composer.patientName.trim() || "Unknown Patient",
         subject: composer.subject.trim(),
         message: composer.body.trim(),
         text: composer.body.trim(),
+        originalLanguage: "en",
         imageUrl: uploadedImageUrl,
         imageName: uploadedImageName,
         status: "Unread",
@@ -452,8 +464,19 @@ function Messages() {
                 </div>
 
                 <p style={{ margin: 0, color: "#555", lineHeight: "1.6", marginBottom: "15px" }}>
-                  {message.message || message.text}
+                  {message.sender === "patient"
+                    ? (message.translatedText || message.message || message.text)
+                    : (message.message || message.text)}
                 </p>
+
+                {message.sender === "patient" &&
+                  message.originalLanguage &&
+                  message.originalLanguage !== "en" &&
+                  message.translatedText && (
+                    <p style={{ margin: "0 0 15px 0", fontSize: "12px", color: "#666" }}>
+                      Original: {message.message}
+                    </p>
+                  )}
 
                 {message.imageUrl && (
                   <div style={{ marginBottom: "15px" }}>

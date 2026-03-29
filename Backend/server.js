@@ -1,10 +1,12 @@
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
 require("dotenv").config();
 
 const patientRoutes = require("./routes/patients");
 const messageRoutes = require("./routes/messages");
 const alertRoutes = require("./routes/alerts");
+const uploadRoutes = require("./routes/upload");
 
 const app = express();
 
@@ -18,6 +20,8 @@ app.get("/", (req, res) => {
 app.use("/patients", patientRoutes);
 app.use("/messages", messageRoutes);
 app.use("/alerts", alertRoutes);
+app.use("/upload", uploadRoutes);
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 const PORT = process.env.PORT || 5000;
 

@@ -7,7 +7,7 @@ function Dashboard() {
   const [messages, setMessages] = useState([]);
   const [alerts, setAlerts] = useState([]);
 
-  useEffect(() => {
+  const fetchDashboardData = () => {
     fetch(`${API_BASE_URL}/patients`)
       .then((res) => res.json())
       .then((data) => setPatients(data))
@@ -22,11 +22,47 @@ function Dashboard() {
       .then((res) => res.json())
       .then((data) => setAlerts(data))
       .catch((error) => console.error("Error loading alerts:", error));
+  };
+
+  useEffect(() => {
+    fetchDashboardData();
   }, []);
 
   const unreadMessages = messages.filter(
     (message) => message.status === "Unread"
   ).length;
+
+  const markAlertAsRead = async (alertId) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/alerts/${alertId}/read`, {
+        method: "PATCH",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to mark alert as read");
+      }
+
+      setAlerts((prev) => prev.filter((alert) => alert.id !== alertId));
+    } catch (error) {
+      console.error("Error marking alert as read:", error);
+    }
+  };
+
+  const markAllAlertsAsRead = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/alerts/read-all`, {
+        method: "PATCH",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to mark all alerts as read");
+      }
+
+      setAlerts([]);
+    } catch (error) {
+      console.error("Error marking all alerts as read:", error);
+    }
+  };
 
   return (
     <div style={{ backgroundColor: "#1a1a1a", minHeight: "100vh", padding: "20px" }}>
@@ -106,7 +142,33 @@ function Dashboard() {
           border: "2px solid #0576D6",
         }}
       >
-        <h2 style={{ color: "#0576D6", marginTop: 0 }}>Recent Alerts</h2>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: "20px",
+          }}
+        >
+          <h2 style={{ color: "#0576D6", margin: 0 }}>Recent Alerts</h2>
+
+          {alerts.length > 0 && (
+            <button
+              onClick={markAllAlertsAsRead}
+              style={{
+                backgroundColor: "#0576D6",
+                color: "#FFFFFF",
+                border: "none",
+                padding: "10px 18px",
+                borderRadius: "8px",
+                cursor: "pointer",
+                fontWeight: "bold",
+              }}
+            >
+              Mark All as Read
+            </button>
+          )}
+        </div>
 
         {alerts.length === 0 ? (
           <p style={{ color: "#666" }}>No alerts yet.</p>
@@ -117,14 +179,36 @@ function Dashboard() {
               style={{
                 padding: "12px",
                 borderBottom: "1px solid #ddd",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: "20px",
               }}
             >
-              <p style={{ margin: "0 0 4px 0", fontWeight: "bold", color: "#1f2937" }}>
-                {alert.text}
-              </p>
-              <p style={{ margin: 0, fontSize: "12px", color: "#6b7280" }}>
-                {alert.timestamp}
-              </p>
+              <div>
+                <p style={{ margin: "0 0 4px 0", fontWeight: "bold", color: "#1f2937" }}>
+                  {alert.text}
+                </p>
+                <p style={{ margin: 0, fontSize: "12px", color: "#6b7280" }}>
+                  {alert.timestamp}
+                </p>
+              </div>
+
+              <button
+                onClick={() => markAlertAsRead(alert.id)}
+                style={{
+                  backgroundColor: "#0576D6",
+                  color: "#FFFFFF",
+                  border: "none",
+                  padding: "8px 14px",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  fontWeight: "bold",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Mark as Read
+              </button>
             </div>
           ))
         )}
